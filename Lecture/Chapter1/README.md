@@ -107,10 +107,10 @@ $$d_{nodal} = d_{proc} + d_{queue} + d_{trans} + d_{prop} $$
     - `d/s` : d distance (meter) , s propagation speed (depend on media) (m/sec)
 
 ### Traffic intensity
-$$\frac{L*a}{r}$$
+$$\frac{L*a}{R}$$
 - `L` : Packet size (bit/packet)
 - `a` : Average packet arrival rate (packet/sec)
-- `r` : Packet transmission rate (packet/sec)
+- `R` : Bit transmission rate (link bandwidth)(bits/sec)
 - `~ 0` : avg. queueing delay small
 - `~ 1` : avg. queueing delay large
 - `> 1` : average delay infinite
