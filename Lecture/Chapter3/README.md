@@ -154,10 +154,12 @@ Reliable Data Transfer protocol (rdt): consist of 4 main functions
 - Estimate RTT
   - SampleRTT : measured time , usually vary
   - for smooth RTT EWMA : Exponential Weighted Moving Average  and α (default : 0.125)
-    $$ EstimatedRTT = (1- α)*EstimatedRTT + α*SampleRTT$$
+  
+    `EstimatedRTT = (1- α)*EstimatedRTT + α*SampleRTT`
   - Then add Safety margin, $\beta$ (default : 0.25)
-    $$ TimeoutInterval = EstimatedRTT + 4*DevRTT$$
-    $$ DevRTT = (1-\beta)*DevRTT + \beta*|SampleRTT - EstimatedRTT|$$
+  
+    `TimeoutInterval = EstimatedRTT + 4*DevRTT`
+    ![DevRTT](appendix/DevRTT.png)
 
 ### Receiver : decrease ACK around 50 % with this process
 - เมื่อได้รับอย่างถูกต้องจะยังไม่ส่ง ACK ทันที รอ 500ms
@@ -218,7 +220,7 @@ before exchanging data, sender/receiver "handshake"
   - Timeout : cut to 1 MSS (maximum segment size)
 - **Congestion window (cwnd)** : send_window , dynamically adjust 
 - TCP rate unit : bytes/sec
-$$TCPrate = \frac{cwnd}{RTT}$$
+![TCPrate](appendix/TCPrate.png)
 
 - **TCP Slow start** : begin increase rate exponentially until first loss_event/threshold then get into AIMD
 
