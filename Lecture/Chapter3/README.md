@@ -108,7 +108,7 @@ Reliable Data Transfer protocol (rdt): consist of 4 main functions
 ![rdt3.1](appendix/rdt3.1.png)
 ![rdt3.2](appendix/rdt3.2.png)
 
-- Utilization : fraction of time sender busy, stop and wait limit performance
+- Utilization : fraction of time sender busy, found that stop-and-wait limit performance(ต้องรอตอบกว่าจะส่งอีกรอบ)
 - **Pipelined Protocols**: 
   - Allow multiple packets to be sent เพิ่ม seq #, เพิ่ม buffer ทั้ง sender/receiver.
   - Two main types:
@@ -211,7 +211,7 @@ before exchanging data, sender/receiver "handshake"
   - initially cwnd = 1 MSS -> 2 MSS -> 4 MSS (doubled cwnd every RTT)
 - **AIMD** (Adaptive Increase/Decrease) algorithm: increase sending rate until packet loss (congestion) occurs, then decrease sending rate.
 
-![AIMD](AIMD.png)
+![AIMD](appendix/AIMD.png)
 
 - **Multiplicative decrease**: ลดได้ 2 แบบ
   - Triple duplicate ACK (TCP Reno) : cut in half (ยังไม่หนักเพราะอันต่อไปยังไปถึงได้)
