@@ -1,4 +1,4 @@
-Network Layer ส่ง Datagram/Packet, ส่งไป transport layer -> IP protocol, ICMP protocol
+Network Layer ส่ง Datagram/Packet, ส่งไป transport layer, protocol ปัจจุบัน IP protocol, ICMP protocol
 มีอยู่ใน every device -> ทั้ง host และ router
 router ใช้ header field ในการ examine , ใน router มี forwarding table
 
@@ -24,7 +24,7 @@ Forwarding มี 2 แบบ :
 Switch fabric : input link to output link : switch rate : กี่ flow ทำพร้อมกัน , มีหลาย switch fabric ได้ 
 มี switch fabric 3 major types
     1. memory : คล้าย computer, input -> memory -> output , memory bandwidth limit speed
-    2. bus : bus contention : bus bandwidth limit bandwidth  
+    2. bus : bus contention : bus bandwidth limit speed
     3. interconn network : exploiting parallelism = แปลง datagram เป็น cell (fixed size) ส่งแล้วค่อย reassemble at exit ช่วยเพิ่ม performance
 
 ทั้งสองต่อจากนี้ทำให้เกิด delay/loss เพราะ buffer overflow
@@ -38,11 +38,11 @@ output port queuing : switch fabric faster than transmission, ขนาด buffe
         4. Weighted fair queuing : แต่ละ class ส่งไม่เท่ากัน not 111 but 123
 
 Datagram Format IPv4
-header len : header bytes
-length : total datagram bytes
-TTL :  prevent looping
+    header len : header bytes
+    length : total datagram bytes
+    TTL :  prevent looping
 
-IPv4 addr : 32-bit : xxx.xxx.xxx.xxx , xxx = 8-bit : for host or router interface
+IPv4 addr : 32-bit , dotted-decimal notation: xxx.xxx.xxx.xxx , xxx = 8-bit : for host or router interface
 
 Subnet : isolated network : กลุ่มอุปกรณ์ที่ไปถึงกันและกันโดยไม่ต้องผ่าน router, ขอได้จาก ISP, ISP ขอจาก RR, RR ขอจาก ICANN
 subnet mask /x : x higher bit is subnet part ใช้บอก maximum เครื่องได้ อย่าลืม -2
@@ -78,6 +78,7 @@ Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เ�
         10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 (subnet for local) 
         more flexible (ย้าย ISP ของ Public IP ได้โดยไม่ส่งผลต่อภายใน แก้ภายในได้โดยไม่ต้องแจ้ง) 
         security ภายนอกเข้าภายในไม่ได้
+        
 NAT implementation :
 1. source ip, port -> NAT ip, NAT port, ข้างนอกส่งมาก็จะใช้ NAT ip, NAT port เป็น dest ip, port
 2. ต้องจดจำ source ip, port ~ NAT ip, NAT port pair ด้วย NAT translation table 

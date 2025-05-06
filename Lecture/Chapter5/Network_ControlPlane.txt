@@ -24,7 +24,7 @@ Routing Algorithm :
         oscillation possible :  เมื่อ cost depends on traffic ทำให้ shortest path สลับไปมา แต่ไม่มีประสิทธิภาพ
     2. Distance vector : Bellman : decentralized : router initially only know link costs to attached neighbor, iterative process
         Dx(y) = cost of least cost from x to y Dx(y) = minv{cx,v + Dv(y)}
-        key : node send its own distance vector to neighbors, when any dest change after receive new DV -> update its own DV 
+        key : node send its own DV to neighbors, when any dest change after receive new DV -> update its own DV 
         iterative, asynchronous update self when local link cost change, neighbor noti, 
         timing : state เราเมื่อ x times ก่อน might effect x-hop router compute now
         distributed self-stopping : each node noti only when its DV change (local change, neighbor noti)
@@ -46,7 +46,7 @@ router ถูกรวมตัวเป็น automonous systems (AS) aka domai
         protocol : RIP (DV), EIGRP (DV), OSPF (link-state)
             OSPF : each router flood OSPF link-state to all router router within AS, router has full topology
         gateway router : at edge of domain เชื่อมระหว่าง AS , run both intra and inter routing protocol
-        Hierarchical OSPF : 2-level hierarchy : local area, backbone แยกใน AS อีกเพื่อลด cost & overhead -> flood only in area or backbone
+        Hierarchical OSPF : 2-level hierarchy : local area, backbone แยกใน AS อีกเพื่อลด cost & overhead -> flood only in local area or backbone
             local router : flood LS in area only 
             area border router : summarize distance to dest in local advertise to backbone, เชื่อม backbone & local
             backbone router : OSPF among backbone, เชื่อมระหว่าง area
@@ -55,7 +55,6 @@ router ถูกรวมตัวเป็น automonous systems (AS) aka domai
     inter routing : routing among AS -> บอกว่า gateway ไหนไป AS ไหน : ใช้อันเดียวกันทั่วโลก
         protocol : BGP (path vector -> distance vector but more intelligence) -> บอก "I am here, here is who i can reach and how" : ตัวเชื่อม AS
             provide each AS รับจาก AS ว่ามันไปถึงไหนได้บ้าง 
-            eBGP : ได้ reachability info จาก neighboring ASes รับจากคนอื่น
             determine route to other network based on policy (เพราะ each network admin ต้องการควบคุม network congestion)
             iBGP : propagate reachability information to all AS-internal router อัพเดทภายใน
             eBGP : advertise destination reachability info to neighboring ASes ส่งให้คนอื่น
@@ -84,7 +83,7 @@ router ถูกรวมตัวเป็น automonous systems (AS) aka domai
             inter เน้น policy  
             intra เน้น performance
 
-SDN แยก control plane ออกจาก router ติดต่อกับ router ด้วย controller agent
+SDN แยก control plane ออกจาก router , ติดต่อกับ router ด้วย controller agent
 logically centralized เพราะอาจเป็น distributed server ก็ได้, centralized เพราะ easier network management + greater flexibility of traffic flow
 ปัญหาที่เกิดกับ traditional routing : เลือกทางยาก เพราะวิธีเดียวคือเปลี่ยน cost, ทำ loadbalancer ไม่ได้, same dest = same path -> ซึ่งไม่ดี เราเลือก path ตามที่มาไม่ได้
 
