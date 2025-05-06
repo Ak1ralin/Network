@@ -1,0 +1,107 @@
+Network Layer ส่ง Datagram/Packet, ส่งไป transport layer -> IP protocol, ICMP protocol
+มีอยู่ใน every device -> ทั้ง host และ router
+router ใช้ header field ในการ examine , ใน router มี forwarding table
+
+Network layer มี 2 functions หลักๆ :
+Forwarding : each router,  in port -> out port : data plane : local per router function : เข้าเมืองทางนี้ออกเมืองทางไหน
+routing : planning trip from source to destination : control plane : network-wide logic -> create forwarding table : ผ่านเมืองอะไรบ้าง
+
+Control plane มี 2 แบบ 
+1. traditional : implement in router , every router interact in the control plane 
+2. SDN : implement in remote server, Centralized control, remote controller compute, then install forwarding table to each router
+
+Service model : 
+    for single datagram : guarantee delivery, less than x msec delay guarantee 
+    for flow of datagram : in-order, minimum bandwidth guarantee, interval between packet guarantee
+Best effort service model : simplicity allowed internet to be widely adopted ไม่การันตีอะไรเลย แต่มันดีตรง simple พอ ทำให้เอาไปปรับแต่งได้ง่าย
+    no delivery guarantee, no order guarantee, no bandwidth guarantee
+
+Routing processor : ใช้ header หา output port (match plus action) มี input port queuing
+Forwarding มี 2 แบบ : 
+1. destination-based forwarding : only rely on dest ip addr (traditional) -> longest prefix matching by TCAMs (content addressable)
+2. generalized forwarding : any set of header field values (หลาย field)
+
+Switch fabric : input link to output link : switch rate : กี่ flow ทำพร้อมกัน , มีหลาย switch fabric ได้ 
+มี switch fabric 3 major types
+    1. memory : คล้าย computer, input -> memory -> output , memory bandwidth limit speed
+    2. bus : bus contention : bus bandwidth limit bandwidth  
+    3. interconn network : exploiting parallelism = แปลง datagram เป็น cell (fixed size) ส่งแล้วค่อย reassemble at exit ช่วยเพิ่ม performance
+
+ทั้งสองต่อจากนี้ทำให้เกิด delay/loss เพราะ buffer overflow
+input port queuing : เกิด HOL blocking ได้ , มาไว switch fabric slower than input port เกิด delay/loss เพราะ input buffer overflow
+output port queuing : switch fabric faster than transmission, ขนาด buffer = RTT*C / sqrt(N) , C = link capacity, N = number of flow
+    buffer เต็ม -> drop อันไหน (drop policy) 1. tail drop (drop อันมาหลังๆ) , 2. priority (priority base)
+    scheduling policy ส่งอันไหน 
+        1. FCFS : First come first serve, first in first out
+        2. Priority : header ใดๆ, same priority -> FCFS 
+        3. RR : แบ่ง class โดยใช้ headerใดๆ, แล้วสลับกันส่ง 
+        4. Weighted fair queuing : แต่ละ class ส่งไม่เท่ากัน not 111 but 123
+
+Datagram Format IPv4
+header len : header bytes
+length : total datagram bytes
+TTL :  prevent looping
+
+IPv4 addr : 32-bit : xxx.xxx.xxx.xxx , xxx = 8-bit : for host or router interface
+
+Subnet : isolated network : กลุ่มอุปกรณ์ที่ไปถึงกันและกันโดยไม่ต้องผ่าน router, ขอได้จาก ISP, ISP ขอจาก RR, RR ขอจาก ICANN
+subnet mask /x : x higher bit is subnet part ใช้บอก maximum เครื่องได้ อย่าลืม -2
+    IP addr : subnet part (network) + host part (device) 
+CIDR : classless : a.b.c.d/x
+
+How host get their ip addr -> DHCP
+DHCP (UDP) : automatic server to แจกจ่าย ip : plug and play  
+0 ล้วน = anonymous , 255 ล้วน = broadcast
+    client src always 0.0.0.0, ของ server เป็น ip ของ host
+    DORA (discover, offer, request, ack) : ทั้ง 4 steps boardcast ล้วน dest = 255.255.255.255
+        D : host boardcast : DHCP discover msg [optional] : ถามว่ามี server อยู่มั้ย
+        O : server broadcast : DHCP offer msg [optional] : offer ip ให้
+        R : host request ip : DHCP request msg : ขอใช้ ip นี้
+        A : server send ip : DHCP ack msg : ตอบรับว่ารับทราบ
+    DO can be skip if client remember and wanna use previous addr : ก็ขอใช้ ip นี้ไปเลย
+ได้จริงๆ ตอน O, นอกจากนี้ยังได้ 
+    1. ip addr of first hop router  
+    2. name and ip of DNS server 
+    3. subnet mask
+
+Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เพิ่มประสิทธิภาพในการแจ้งข้อมูล 
+    ทำโดยให้ ISP รับข้อมูล แล้วค่อยจ่ายต่อให้ผู้ใช้ข้างล่าง -> เปลี่ยน ISP ก็แค่เพิ่มไปที่อีกค่าย
+
+ปัญหา IPv4 addr ไม่พอใช้แล้ว 
+    -> IPv6 (real sol) -> cant เพราะ เราเปลี่ยน router ทั้งหมดไม่ได้ so IPv4 ยังถูกใช้ 
+        128-bit ip addr
+        no checksum
+        no option -> 40-bytes fixed header 
+        no fragment เพราะขนาดคงที่
+        new network-layer treatment -> flow for video
+    -> NAT all device in local share one IPv4 addr diff port แก้เฉพาะหน้า แต่ก็มีข้อดี
+        10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 (subnet for local) 
+        more flexible (ย้าย ISP ของ Public IP ได้โดยไม่ส่งผลต่อภายใน แก้ภายในได้โดยไม่ต้องแจ้ง) 
+        security ภายนอกเข้าภายในไม่ได้
+NAT implementation :
+1. source ip, port -> NAT ip, NAT port, ข้างนอกส่งมาก็จะใช้ NAT ip, NAT port เป็น dest ip, port
+2. ต้องจดจำ source ip, port ~ NAT ip, NAT port pair ด้วย NAT translation table 
+ปัญหา NAT คือ ก้าวก่าย transport layer : ใช้ #port
+
+Tunneling : อยากใช้ IPv6 แต่ต้องผ่าน IPv4 router 
+    ครอบ IPv6 ด้วย IPv4 header (src & dest) -> packet in packet
+    src & dest ใน IPv4 header จะเป็น IPv6/v4 router ที่เป็นต้นและปลายทาง
+
+Generalized forwarding : หลาย field ช่วยกันกำหนด action ไม่ใช่แค่ dest ip 
+    header ที่ใช้ได้มีตั้งแต่ Link,Network,Transport layer
+    action : forward/drop (firewall)/copy/modify (NAT) /log/send to controller
+match -> src = 1.2.*.*, dest = *.*.*.* action = drop ทำหน้าที่เป็น firewall
+match and action = เกิดรูปแบบการทำงานที่หลากหลาย can be router, switch, firewall and NAT
+router -> match dest IP addr, switch -> match dest MAC addr
+สามารถใช้มา program network-wide behavior
+
+https://chatgpt.com/share/6818b600-6040-8011-94af-f2ad90d8d79a
+Middlebox : ส่วนเสริมใดๆ ที่ไม่ใช่การส่งข้อมูลธรรมดา เช่น NAT, Firewall, Loadbalancer, caches
+    Proprietary HW -> Whitebox + VM -> SDN + NFV
+SDN : Centralized control and configuration management
+NFV : Network Function Virtualization : ฟังก์ชั่นของ middlebox ถูกทำเป็น SW หมด
+principle of internet : 
+    1. simple connectivity 
+    2. ip protocol 
+    3. intelligence at network edge
+

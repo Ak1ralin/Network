@@ -1,0 +1,98 @@
+PC :
+ipconfig /all : display IPv4 addr info
+
+Switch : 
+Switch>enable : access privileged mode 
+Switch# conf t : access configuration terminal
+Switch(config)# hostname S1 : set name to S1
+S1(config)# no ip domain-lookup : disable DNS lookup
+S1(config)# enable secret <password> : password for enable
+S1(config)# line con 0 : enter line configuration mode for first console line 
+S1(config-line)# password <password> : password for enter console
+S1(config-line)# exec-timeout 5 0 : no activity for 5 minutes auto logout
+S1(config-line)# login : enable login
+S1(config-line)# logging synchronous : Prevents interruptions by log messages
+S1(config-line)# exit : exit current mode
+S1(config)# line vty 0 : enter line configuration mode for vty line cover vty lines 0 through 4
+S1(config-line)# password <password> : password for enter console
+S1(config-line)# login : enable login
+S1(config-line)# end : exit configuration terminal go privileged mode
+S1(config)# banner motd #<message>#
+S1(config)# service password-encryption : encrypt password
+R1(config)# int g0/0 : enter g0/0 interface configuration mode
+R1(config-if)# description <description> : set description
+R1(config-if)# ip address <ip> <mask> : set IP address and mask
+R1(config-if)# no shutdown : turn on interface
+R1(config)# int s0/0/0
+R1(config-if)# clock rate 128000 : set clockrate for DCE port
+R1(config)# ip route <dest> <mask> <nexthop ip> : set recursive static route 
+R1(config)# ip route <dest> <mask> <exit int> : set directly static route 
+R1(config)# ip route 0.0.0.0 0.0.0.0 <nexthop>/<exit int> : set default route
+R1(config)# int lo0 : enter loopback interface configuration mode, can change router IDs
+R1(config)# router ospf 1
+R1(config-router)# network <ip> <inv-mask> area x : set addr to area x
+R1(config-router)# router-id 11.11.11.11 : set router ID
+R1(config)# clear ip ospf process : to take effect
+R1(config)# router ospf 1 
+R1(config-router)# passive-interface x : set interface x as passive
+R1(config-router)# passive-interface default : set all interfaces as passive
+R1(config-router)# no passive-interface x : set interface x as active
+R1(config-router)# auto-cost reference-bandwidth 10000 : 10 Gb/s = cost 1, 1 Gb/s = cost 10
+R1(config)# int s0/0/0
+R1(config-if)# bandwidth 128 : set bandwidth to 128 kb/s, have to apply in both side of serial link
+R1(config-if)# ip ospf cost 100 : set cost to 100, have to apply in both side of link
+S1(config)# vlan x : create vlan x and enter configuration mode
+S1(config)# no vlan x : remove vlan x
+S1(config-vlan)# name <name> : name vlan x
+S1(config)# int x : enter configuration mode of interface x
+S1(config)# interface range f0/11-24 : range configuration of interfaces
+S1(config-if)# switchport mode access : access mode (traffic for one vlan only)
+S1(config-if)# switchport mode dynamic desirable : desirable mode (adjust depend on other side)
+S1(config-if)# switchport mode trunk : trunk mode (traffic for all vlans, both side of link)
+S1# show interfaces trunk : check mode
+S1(config-if)# switchport access vlan y : assign interface x to vlan y
+S1(config-if)# no switchport access vlan : remove vlan assign to interface
+S1(config)# interface vlan 1
+S1(config-if)# no ip address : remove ip address from interface
+S1(config-if)# int vlan 99
+S1(config-if)# ip address 192.168.x.x 255.255.255.0 : assign ip address to interface
+R1(config)# router rip : enter rip router mode
+R1(config-router)# version 2
+R1(config-router)# network <ip address> : Advertise interface belong to this network
+R1(config-router)# no auto-summary : disable auto summary
+R1(config-router)# default-information originate : advertise default route
+R1(config)# ip dhcp excluded-address <ip address> <ip address> : exclude ip address range
+R1(config)# ip dhcp pool <pool name> : create pool
+R1(dhcp-config)# network <ip address> <subnet mask> : pool network
+R1(dhcp-config)# default-router <ip address> : pool default gateway
+R1(dhcp-config)# dns-server <ip address>: pool dns server
+R1(config)# int g0/0
+R1(config-if)# ip helper-address <ip address>: config helper address for G0/0 LAN
+Gateway(config)# ip nat inside source static <private ip> <public ip> : NAT translation
+Gateway(config)# int x 
+Gateway(config-if)# ip nat inside : tell Gateway this is inside interface
+Gateway(config)# int y
+Gateway(config-if)# ip nat outside : tell Gateway this is outside interface
+Gateway# show ip nat translations : show history of using nat
+Gateway# show ip nat statistics : show statistics of nat
+Gateway# clear ip nat translation * : clear all nat translation
+Gateway(config)# access-list <number> permit 192.168.1.0 0.0.0.255 : mean allow 192.168.1.0/24
+Gateway(config)# ip nat pool <name> <start ip> <end ip> netmask <mask> : create nat public addr pool
+Gateway(config)# ip nat inside source list <number> pool <name> : matching internal traffic
+Gateway(config)# no ip nat inside source static <private ip> <public ip> : remove nat mapping
+R1# clock set 17:00:00 18 Feb 2013 : set internal software clock
+S1# copy running-config startup-config : save running configuration to startup file
+R1# show : retrieve information from router
+R1# show startup-config : show startup configuration
+R1# show ip route : show routing table
+S1# show ip interface brief : check status of the connected interfaces
+S1# show flash : determine if any VLANs have been created on the Switch
+S1# delete vlan.dat : delete the vlan.dat file
+S1# erase startup-config : remove configuration file
+S1# reload : reboot the switch : remove any old configuration
+R1# show ip route ospf : show ospf routing table
+R1# show ip protocols : show ospf configuration information
+R1# show interface x : show detailed info for interface x e.g. bandwidth
+R1# show ip ospf interface x : show ospf interface x info checking cost
+
+

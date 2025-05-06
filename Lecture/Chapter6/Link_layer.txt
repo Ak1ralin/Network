@@ -1,0 +1,92 @@
+link : path used to transfer (frame) : wireless, wired , ไม่จำเป็นต้องเหมือนกันหมด (ให้ different service) 
+link ต่างก็มี link layer service ต่าง เช่น error detect, flow control, error correction (จะได้ไม่ต้อง retransmit), half-duplex / full-duplex
+
+link layer implementation : implement on-chip or network interface card (NIC) : attached into host system buses
+MAC addr : associate with HW
+reliable delivery between adjacent node : ที่ไม่ทำ end-end จะได้ให้ retransmit/drop ไวๆ 
+
+Error detection : ผ่านไม่ได้แปลว่าไม่มี error
+	EDC : error detection and correction bits, larger EDC field = better dectection and correction
+	Parity Check : 
+		Single bit parity : even/odd number of 1's , detect single bit error
+		Two-dimensional parity : 2D parity can error correction as well
+	Internet checksum : 
+		ตอนสร้าง : 16-bit integers -> 1's complement sum เกินเอามาบวกแล้ว flip bit 
+		ตอนตรวจ : รวมทั้งหมด เอาไปรวมแล้ว flip bit ได้ 0000 แปลว่า no error (รวม checksum)
+	CRC : Cyclic Redundancy check
+		D = data bit
+		G = bit pattern, r+1 bits, x3+x2+1 = 1101
+		เลื่อน D เพิ่ม r bit (เพิ่ม 0 ลงท้าย) XOR with G find R (ขนาด r bit เรียกว่า CRC bit)
+		ส่ง <D,R> , check error by หาร with G ต้องลงตัว, ไม่ลงตัวแปลว่ามี error
+
+two types of link :
+	point to point : old school telphone
+	broadcast : shared wire or medium
+
+Multiple access protocols : single shared broadcast channel, two or more simultaneous transmission
+2  คุณสมบัติ ：distributed algorithm รุ้ว่าส่งได้ตอนไหน, no out-of-band channel for coordination : ไม่พึ่งพาอะไรอื่นๆ 
+ideal MAP : 
+	one node = R 
+	m nodes = each R/m 
+	fully decentralized (no special node to coordinate, no synchronized clock, no slot)
+	simple
+3 broad classes
+	1. channel partitioning : divide channel into smaller "pieces" (time, freq) ให้ pieces กับ node
+		TDMA : divide time, unused slot -> idle
+		FDMA : divide freq, unused freq band -> idle 
+		pros = good for high, cons = bad for low เพราะถ้าทุก node
+		m node = R/m, 1 node ก็เป็น R/m อยู่ดี
+	2. random access : not divided, allow collision (focus on detect collision and recovery)
+		Slotted ALOHA : synchronized node, ได้ frame จะส่งใน next slot if collision = idle slot, node have prob p to retransmit in each subsequent slots until success
+		Pure ALOHA = not synchronized node
+		CSMA = listen before transmit (not interrupt other) , channel not busy -> send else defer transmission, still might collision becuz propagation delay
+		CSMA/CD = shorter detect, reduce time waste in collision, detect = transmission abort, after aborting -> binary backoff (more collision longer backoff)
+		pros = good for low, cons = bad for high (collision overhead)
+	3. taking turn : node take turn but not constant time
+		polling = centralized controller (overhead,latency,SOF) -> ไม่ผ่าน fully decentralized
+		token passing = transmit while holding token -> มี coordination ของอื่นๆ 
+
+MAC addr (48 bits, 6 bytes) : used locally (same LAN) to get frame from one interface to another physically-connected interface : allocated by IEEE
+ARP : to get MAC addr เรารู้ ip แต่ไม่รู้ mac ต้องทำไง = ใช้ ARP , ARP table : อยู่ใน IP node : < ip addr , mac addr, TTL >
+ไม่มี -> broadcast ARP query (มี target/src's ip addr, src mac addr แต่ dest mac addr = FF-FF-FF-FF-FF-FF ) : ทุก node ใน LAN ได้รับ
+when reply is directly reply not broadcast using ip and mac addr ที่ส่งมา
+แล้วถ้าคนละ LAN : initially dest mac = interface of router, after router des mac = real dest, src mac = router interface mac
+
+Ethernet -> dominant wired LAN technology (simple (single chip multi speed), cheap, fast )
+	bus -> ใช้สายเดียวกันหมด โอกาส collision สูง
+	switched -> ไม่ชนกันคุยผ่าน switch กลาง -> Ethernet
+	Frame structure 
+		preamble : 8 bytes เป็น pattern ใช้บอกว่าอันนี้เป็น frame ใหม่
+		address : 12 bytes 6 for src mac, 6 for dest mac
+		type : higher layer protocol
+		CRC : error detect, error = drop no retran ให้ higher layer บอกให้ retran
+Ethernet is connnectionless and unreliable = responsibility of transportation layer
+
+Ethernet switch is link-layer device = examine incoming mac addr using CSMA/CD ว่าจะส่งต่อไป link ไหน
+	คุณสมบัติ : transparent : host ไม่รู้ , plug and play (no need to configured)
+Switch table : < mac addr, interface, TTL> ทำให้รู้ว่า mac addr นี้ต้องไป interface ไหน
+	Self learning (รู้จากการรับ，ไม่รู้ก็ flood frame ให้ทุกคน except ผู้ส่ง) ไม่เหมือน routing protocol หรือ ARP ไม่ขอไม่ถามส่งอย่างเดียว
+router vs switch : 
+	router : network layer ดู network header
+	switch : link layer ดู link header
+	มี table ทั้งคู่ 
+		router ได้จาก routing algorithm, map ด้วย ip address 
+		switch ได้จาก self learning, map ด้วย mac address
+
+VLANs : สอย LAN ใหญ่ๆ เป็น LAN ย่อยๆ หลายอัน 
+	เพื่อลด traffic cross entire LAN (traffic (ARP, self learning) isolation) เช่น flood/broadcast -> เพิ่ม efficiency
+	เพิ่ม security + privacy, ต่าง VLAN คุยผ่าน routing (switch + router)
+trunk port : หลาย VLAN ใช้ร่วมกัน ใช้เชื่อมระหว่าง physical device เมื่อ 1 VLAN อยู่กระจายหลาย switches การส่งระหว่าง switch ทำได้ผ่าน trunk port
+dynamic membership : ใช้ mac addr เลือกเข้าถึง VLAN แล้ว
+static membership : เข้า VLAN อิงจาก port switch
+
+EVPN : Ethernet switch logically connect ทั้งที่ physically ไม่ using IP as an underlay
+
+datacenter : 
+	border router : connection outside datacenter
+	Tier-1 switches 
+	Tier-2 switches
+	Top of rack switch 
+	Server Rack
+	multipath between switch -> ใช้ SDN มากำหนด
+	Load balancer : application layer routing
