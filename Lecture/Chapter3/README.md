@@ -159,6 +159,7 @@ Reliable Data Transfer protocol (rdt): consist of 4 main functions
   - Then add Safety margin, $\beta$ (default : 0.25)
   
     `TimeoutInterval = EstimatedRTT + 4*DevRTT`
+    
     ![DevRTT](appendix/DevRTT.png)
 
 ### Receiver : decrease ACK around 50 % with this process
@@ -220,6 +221,7 @@ before exchanging data, sender/receiver "handshake"
   - Timeout : cut to 1 MSS (maximum segment size)
 - **Congestion window (cwnd)** : send_window , dynamically adjust 
 - TCP rate unit : bytes/sec
+
 ![TCPrate](appendix/TCPrate.png)
 
 - **TCP Slow start** : begin increase rate exponentially until first loss_event/threshold then get into AIMD
