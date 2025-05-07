@@ -5,12 +5,15 @@ Network-layer functions
     routing : determine route : control plane
         per-router control (traditional) -> intelligence router (router algorithm components in each and every router interact in the control plane)
         SDN : logically centralized control : remote controller computes -> installs forwarding tables in routers
-    
-Routing Protocol : determine good (least cost, fastest, least congestion) path (sequence of router)
-    Type :
+            logically เพราะอาจจะ implement แบบ distributed system
+
+Routing Protocol : determine good (least cost, fastest, least congestion) path (sequence of router) -> traditional routing
+    Type : 
         global : all routers have complete topology, link cost info -> link state : Dijkstra
         decentralized : iterative process of computative, exchange with neighbor -> distance vector : Bellman
 
+https://chatgpt.com/share/681aeada-2764-8011-8741-8f48bae9d795
+https://chatgpt.com/share/6819d157-cf3c-8011-9a66-f144627f3dc5
 Routing Algorithm : 
     1. Link-state : Dijkstra : global : centralized : ทุก router รู้ complete topology via link state broadcast
         compute from one node to all node -> forwarding table get : k iteration know least cost to k dest 
@@ -18,16 +21,16 @@ Routing Algorithm :
         D(v) = current least cost from src to node v
         p(v) = pre node of v
         N' = set of node that known least cost
-        initial เอาเฉพาะที่ติดกับ src , ทุกรอบเลือกอันที่น้อยที่สุดให้เข้า N' (เท่ากันเลือกอันใดอันหนึ่ง) , update node ที่ติดกับ constant node นี้
+        initial เอาเฉพาะที่ติดกับ src , ทุกรอบเลือกอันที่น้อยที่สุดให้เข้า N' (เท่ากันเลือกอันใดอันหนึ่ง) , update node ที่ติดกับ minimum นี้
         path สองรอบอาจไม่ตรงกันแต่ cost ตรงเพราะ min cost อาจเท่ากันในบาง step ทำให้ต้องสุ่มเลือก
         algo complex = O(nlogn) , message complex = O(n2)
         oscillation possible :  เมื่อ cost depends on traffic ทำให้ shortest path สลับไปมา แต่ไม่มีประสิทธิภาพ
     2. Distance vector : Bellman : decentralized : router initially only know link costs to attached neighbor, iterative process
         Dx(y) = cost of least cost from x to y Dx(y) = minv{cx,v + Dv(y)}
         key : node send its own DV to neighbors, when any dest change after receive new DV -> update its own DV 
-        iterative, asynchronous update self when local link cost change, neighbor noti, 
-        timing : state เราเมื่อ x times ก่อน might effect x-hop router compute now
-        distributed self-stopping : each node noti only when its DV change (local change, neighbor noti)
+        iterative, asynchronous update self when local link cost change or neighbor noti
+        timing : ตอน t = x, state เราตอน t = 0 might effect x-hop router compute เพราะ state ใช้เวลาในการกระจาย
+        distributed self-stopping : each node noti only when its DV change ซึ่งอาจเกิดจาก local change or neighbor noti
         good news converge ไว ， bad news converge ช้า เพราะยังคิดว่าเพื่อนมันมีทางไป เพราะเพื่อนยังไม่รู้ว่าทางมันตายแล้ว กว่าจะรู้จริงๆ ก็อาจจะอัพเดทวนไปวนมาจนถึงค่า max (count-to-infinity)
 
     LS vs DV 
@@ -35,67 +38,69 @@ Routing Algorithm :
     speed of convergence -> LS : (n2), DV = vary might routing loop, count-to-infinity
     robustness : LS : พังเฉพาะ router ที่พัง , DV : พังเยอะ black-holing
 
-ก่อนหน้านี้เรามองว่า network ไม่มีการแบ่งแยก (flat) แต่ความจริงแล้วมันไม่ใช่ -> Realworld = Hierarchical เพราะ router ไม่สามารถเก็บทุก destination ได้ -> network of network
-router ถูกรวมตัวเป็น automonous systems (AS) aka domain -> แต่ละ AS จะมี admin ควบคุมภายในเอง
+ก่อนหน้านี้เรามองว่า network falt ไม่มีการแบ่งแยก แต่ความจริงแล้วมันไม่ใช่ -> Realworld = Hierarchical เพราะ router ไม่สามารถเก็บทุก destination ได้ -> network of network
+router ถูกรวมตัวเป็น automonous systems (AS) aka domain -> แต่ละ AS มองว่าเป็น ประเทศหนึ่งก็ได้ จะมี admin (รัฐบาล) ควบคุมภายในเอง
 ซึ่งโครงสร้างแบบนี้ทำให้เกิดการ routing 2 แบบ : แยก intra/inter เพราะ each network admin want to control routing in its own network
-    Forwarding table เกิดจากทั้งสอง routing algorithm 
-        intra-domain routing : destination within AS
-        intra + inter domain routing : destination external AS, ใช้ intra เพราะ iBGP บอกว่าให้ไป gateway นี้แต่จะไปถึง gateway ยังไง ต้องใช้ intra 
+    Forwarding table มี entry ที่เกิดจากทั้งสอง routing algorithm 
+        intra-domain routing : entry ที่มี destination within AS
+        intra + inter domain routing : entry ที่มี destination external AS, ใช้ intra เพราะถึง iBGP (inter) บอกว่าให้ไป gateway นี้แต่จะไปถึง gateway ได้ยังไงต้องใช้ intra มาหา
 
     intra-AS : routing among router within AS : ซึ่งใน AS เดียวกัน intra-domain routing protocol ต้องเหมือนกัน
-        protocol : RIP (DV), EIGRP (DV), OSPF (link-state)
-            OSPF : each router flood OSPF link-state to all router router within AS, router has full topology
+        protocol : OSPF (link-state), RIP (DV), EIGRP (DV) 
+            OSPF : each router flood OSPF link-state to all router within AS, every router has full topology of network
         gateway router : at edge of domain เชื่อมระหว่าง AS , run both intra and inter routing protocol
         Hierarchical OSPF : 2-level hierarchy : local area, backbone แยกใน AS อีกเพื่อลด cost & overhead -> flood only in local area or backbone
-            local router : flood LS in area only 
+            local router : flood in local area only 
             area border router : summarize distance to dest in local advertise to backbone, เชื่อม backbone & local
             backbone router : OSPF among backbone, เชื่อมระหว่าง area
             boundary router : gateway router, เชื่อมระหว่าง AS
 
     inter routing : routing among AS -> บอกว่า gateway ไหนไป AS ไหน : ใช้อันเดียวกันทั่วโลก
-        protocol : BGP (path vector -> distance vector but more intelligence) -> บอก "I am here, here is who i can reach and how" : ตัวเชื่อม AS
-            provide each AS รับจาก AS ว่ามันไปถึงไหนได้บ้าง 
-            determine route to other network based on policy (เพราะ each network admin ต้องการควบคุม network congestion)
-            iBGP : propagate reachability information to all AS-internal router อัพเดทภายใน
-            eBGP : advertise destination reachability info to neighboring ASes ส่งให้คนอื่น
-            -> so gateway router ทำทั้ง iBGP & eBGP
+        protocol : BGP (path vector -> advanced distance vector) -> บอก "I am here, here is who i can reach and how" : ตัวเชื่อม AS
+            provide each AS ว่า other AS ไปถึงไหนได้บ้าง 
+            determine route to other network based on policy (เพราะ each network admin ต้องการควบคุม traffic ภายใน AS ของตนเอง)
+            iBGP : อัพเดทภายใน : propagate reachability information to all AS-internal router : บอก internal router ว่าจะไป dest นี้ให้ไป gateway router อะไร  
+            eBGP : ให้ AS เพื่อนบ้าน : advertise destination reachability info to neighboring ASes : บอก gateway router ว่าให้ผ่าน ASes (path vector) อะไรต่อ
+            -> so gateway router ทำทั้ง iBGP & eBGP, gateway router advertise ให้ internal router ว่าให้มาหา (iBGP) , advertised neighbor AS gateway router ว่าจะไปที่นี่ให้ผ่าน AS อะไร (eBGP)
             BGP -> BGP session -> semi-permanent TCP connection เพื่อ security, advertise โดยบอกเพื่อนบ้านว่าเราไปถึง dest นี้ได้นะ 
                 message type : OPEN, UPDATE (advertise new path), KEEPALIVE (ให้ connection คงอยู่, ACK), NOTIFICATION (report error, close connection)
             BGP advertised route : prefix + attributes 
                 prefix : destination
                 attributes : 1. AS ที่ต้องผ่าน 2. internal router ที่ใช้สำหรับไป AS ต่อไป
-            Policy based routing : เมื่อได้รับ path ใหม่จะตัดสินว่าจะรับ/ทิ้ง path นี้
+            Policy based routing : ใช้ policy เมื่อได้รับ path ใหม่มาตัดสินว่าจะรับ/ทิ้ง path นี้
                 1. ผ่าน AS นี้ไหม เช่น กุจะไม่ผ่าน Y-AS 
                 2. advertise ให้ AS อื่นๆ ไหม
                     เหตุผลในการไม่ advertise เพราะไม่อยากเป็นทางผ่านเป็นต้น เพราะอาจจะไม่มีประโยชน์ -> congestion network เปล่าๆ
                 3. เลือกใช้ path ไหน ถ้ามี multiple path 
                     Policy decision 
-                    Shortest AS-PATH
-                    Hot potato routing : แนวทางการเลือก multipath : least intra-domain cost (ภายใน AS ปัจจุบัน), dont care domain อื่น (not my bussiness)
+                    Shortest AS-PATH : ผ่าน AS น้อยที่สุด
+                    Hot potato routing : least intra-domain cost (ภายใน AS ปัจจุบัน), dont care domain อื่น (not my bussiness)
 
     Diff among Intra-Inter routing
         Policy : 
-            inter เพื่อควบคุม traffic AS ตัวเอง คุมคนผ่าน คุม congestion
+            inter เพื่อควบคุม traffic AS ตัวเอง คุม traffic
             intra เพื่อ performance เพราะเป็นของคนกันเอง เลยไม่มี policy เท่าไหร่
         Scale : 
-            intra : hierarchical routing ลด table size, reduce update traffic : OSPF flood
+            intra : hierarchical OSPF ลด table size, reduce update traffic (OSPF flood)
         Performance : 
             inter เน้น policy  
             intra เน้น performance
 
 SDN แยก control plane ออกจาก router , ติดต่อกับ router ด้วย controller agent
 logically centralized เพราะอาจเป็น distributed server ก็ได้, centralized เพราะ easier network management + greater flexibility of traffic flow
-ปัญหาที่เกิดกับ traditional routing : เลือกทางยาก เพราะวิธีเดียวคือเปลี่ยน cost, ทำ loadbalancer ไม่ได้, same dest = same path -> ซึ่งไม่ดี เราเลือก path ตามที่มาไม่ได้
+ปัญหาที่เกิดกับ traditional routing : 
+    เลือกทางยาก เพราะวิธีเดียวคือเปลี่ยน cost 
+    ทำ loadbalancer ไม่ได้ 
+    same dest = same path -> ซึ่งไม่ดี เราเลือก path ตามที่มาไม่ได้
 
 router (data-plane switch) -southbound API-> SDN controller -northbound API-> network control app
     SDN controller : maintain network state information -> implement แบบ distributed system 
-    network control application : brain of control 
+    network control application : brain of control , ดึงข้อมูลจาก SDN controller มาทำการ compute
     openflow protocol : SDN controller to switch เป็น southbound API : TCP 
-        เราเรียกมันว่า openflow api เพราะ SDN controller เรียกใช้เป็นแบบ function 
 
 ICMP : communicate network-level information : ping
     ICMP message : type, code 
-    Traceroute : UDP & TCP (TCP traceroute) use TTL (expired = type 11 code 0), stop when get type 3 code 3 (dest port unreachable)
+    Traceroute : UDP & TCP (TCP traceroute) use TTL (expired = type 11 code 0) มาหา RTT, stop when get type 3 code 3 (dest port unreachable)
 
 Network operator approaches to management
     CLI : ssh
