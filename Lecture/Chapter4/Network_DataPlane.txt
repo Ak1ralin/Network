@@ -18,22 +18,22 @@ Best effort service model :  Simple → flexible → scalable → อินเ�
     no delivery guarantee, no order guarantee, no bandwidth guarantee
     อินเทอร์เน็ตใช้แบบ Best Effort เพราะมัน โคตรง่าย โคตรยืดหยุ่น ถึงจะไม่ perfect แต่มัน “พอ” แล้วที่ transport layer (เช่น TCP) จะมาโปะให้ฉลาดขึ้น
 
-Router มี 2 part : Routing processor (ตัวเลือกว่าไปไหน), Switch fabric (ตัวส่งให้ไปเปรียบเสมือนเส้น)
+Router มี 2 part : Routing processor (ตัวเลือกว่าไปไหน), Switch fabric (ตัวส่งให้ไปเปรียบเสมือนเส้นทาง)
     Routing processor : ใช้ header หา output port (match plus action) พวก forwarding table, controller agent ก็อยู่ตรงนี้  
         Forwarding มีหลักการใช้ header 2 แบบ : 
         1. destination-based forwarding : only rely on dest ip addr (traditional) -> longest prefix matching by HW ชื่อ TCAMs (content addressable)
         2. generalized forwarding : any set of header field values (หลาย field)
 
-    Switch fabric : input link to output link : switch rate : ส่งได้ไวแค่ไหน (bps, packet per sec) , มีหลาย switch fabric ได้ 
+    Switch fabric : transfer packet from input link to output link : switch rate : ส่งได้ไวแค่ไหน (bps, packet per sec) , มีหลาย switch fabric ได้ 
     มี switch fabric 3 major types
         1. memory : คล้าย computer, input ไปเก็บที่ memory, output มาดึงจาก memory, memory bandwidth limit speed
-        2. bus : มีโอกาสเกิด bus contention : bus bandwidth limit speed
-        3. interconn network : มีได้หลายเส้นทาง cross network
+        2. bus : มีโอกาสเกิด bus contention (แย่งกันใช้ bus) : bus bandwidth limit speed
+        3. interconn network : มีได้หลายเส้นทาง crossbar -> multistage switch
             exploiting parallelism = แปลง datagram เป็น cell (fixed size) แยกกันส่งแล้วค่อย reassemble at exit ช่วยเพิ่ม performance
 
     ทั้งสองต่อจากนี้ทำให้เกิด delay/loss เมื่อ buffer overflow
     input port queuing : เกิด HOL blocking ได้ , เมื่อ switch rate slower than input rate 
-    output port queuing : switch rate faster than transmission, ขนาด buffer = RTT*C / sqrt(N) , C = link capacity, N = number of flow
+    output port queuing : switch rate faster than transmission, ขนาด buffer = RTT*C / sqrt(N) ,RTT หน่วยเป็น sec, C = link capacity, N = number of flow
         buffer เต็ม -> drop อันไหน (drop policy) 
             1. tail drop (drop อันมาหลังๆ)  
             2. priority (priority base)
@@ -66,12 +66,13 @@ DHCP (UDP) : automatic server to แจกจ่าย ip : plug and play
         R : host request ip : DHCP request msg : ขอใช้ ip นี้
         A : server send ip : DHCP ack msg : ตอบรับว่ารับทราบ
     DO can be skip if client remember and wanna use previous addr : ก็ขอใช้ ip นี้ไปเลย
-ได้จริงๆ ตอน O, นอกจากนี้ยังได้ 
+ได้จริงๆ ตอน O แต่ไม่ได้ใช้นะ ตอน req src still 0.0.0.0 and dest = 255.255.255.255 
+    นอกจากนี้ยังได้ 
     1. default gateway (router)
     2. DNS server 
     3. subnet mask
 
-Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เพิ่มประสิทธิภาพในการแจ้งข้อมูล/จัดการ
+Hierarchical Addressing : แก้ปัญหา forwarding table ใหญ่ เพิ่มประสิทธิภาพในการแจ้งข้อมูล/จัดการ
     ทำโดยให้ ISP รับข้อมูล แล้วค่อยจ่ายต่อให้ผู้ใช้ข้างล่าง -> เปลี่ยน ISP ก็แค่เพิ่มไปที่อีกค่าย
 
 ปัญหา IPv4 addr ไม่พอใช้แล้ว 

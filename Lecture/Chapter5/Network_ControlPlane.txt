@@ -102,9 +102,11 @@ ICMP : communicate network-level information : ping
     ICMP message : type, code 
     Traceroute : UDP & TCP (TCP traceroute) use TTL (expired = type 11 code 0) มาหา RTT, stop when get type 3 code 3 (dest port unreachable)
 
+https://chatgpt.com/share/681b1c6e-8508-8011-9356-8b0b7573c4a3
 Network operator approaches to management
     CLI : ssh
-    SNMP/MIB : operator query/sets devices data (MIB) using SNMP (protocol -> req,res,trap) : รับส่ง device data
+    SNMP/MIB : operator query/sets devices data (ในรูปแบบ MIB) using SNMP (protocol -> req,res,trap) : รับส่ง device data
     NETCONF (communicate YANG-compatible action)/ YANG(data modeling language)  : manage/configure device
+        NETCONF = โปรโตคอลสำหรับดึง/เซต config
+        YANG = ภาษาที่ใช้บอกว่า config มีหน้าตายังไง
         Goal : actively manage/configure devices network-wide : atomic-commit
-        NETCONF protocol messages encoded in XML
