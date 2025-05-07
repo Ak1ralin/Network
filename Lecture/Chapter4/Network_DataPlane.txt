@@ -1,41 +1,47 @@
+https://chatgpt.com/share/681addac-04d0-8011-82a7-31a62c1e6630
 Network Layer ส่ง Datagram/Packet, ส่งไป transport layer, protocol ปัจจุบัน IP protocol, ICMP protocol
 มีอยู่ใน every device -> ทั้ง host และ router
 router ใช้ header field ในการ examine , ใน router มี forwarding table
 
 Network layer มี 2 functions หลักๆ :
 Forwarding : each router,  in port -> out port : data plane : local per router function : เข้าเมืองทางนี้ออกเมืองทางไหน
-routing : planning trip from source to destination : control plane : network-wide logic -> create forwarding table : ผ่านเมืองอะไรบ้าง
+routing : จะผ่าน router อะไรบ้าง : control plane : network-wide logic -> create forwarding table : ผ่านเมืองอะไรบ้าง
 
 Control plane มี 2 แบบ 
 1. traditional : implement in router , every router interact in the control plane 
-2. SDN : implement in remote server, Centralized control, remote controller compute, then install forwarding table to each router
+2. SDN : implement in remote server, centralized control, remote controller compute, then install forwarding table to each router
 
 Service model : 
     for single datagram : guarantee delivery, less than x msec delay guarantee 
     for flow of datagram : in-order, minimum bandwidth guarantee, interval between packet guarantee
-Best effort service model : simplicity allowed internet to be widely adopted ไม่การันตีอะไรเลย แต่มันดีตรง simple พอ ทำให้เอาไปปรับแต่งได้ง่าย
+Best effort service model :  Simple → flexible → scalable → อินเทอร์เน็ตมันเลยแพร่หลายได้
     no delivery guarantee, no order guarantee, no bandwidth guarantee
+    อินเทอร์เน็ตใช้แบบ Best Effort เพราะมัน โคตรง่าย โคตรยืดหยุ่น ถึงจะไม่ perfect แต่มัน “พอ” แล้วที่ transport layer (เช่น TCP) จะมาโปะให้ฉลาดขึ้น
 
-Routing processor : ใช้ header หา output port (match plus action) มี input port queuing
-Forwarding มี 2 แบบ : 
-1. destination-based forwarding : only rely on dest ip addr (traditional) -> longest prefix matching by TCAMs (content addressable)
-2. generalized forwarding : any set of header field values (หลาย field)
+Router มี 2 part : Routing processor (ตัวเลือกว่าไปไหน), Switch fabric (ตัวส่งให้ไปเปรียบเสมือนเส้น)
+    Routing processor : ใช้ header หา output port (match plus action) พวก forwarding table, controller agent ก็อยู่ตรงนี้  
+        Forwarding มีหลักการใช้ header 2 แบบ : 
+        1. destination-based forwarding : only rely on dest ip addr (traditional) -> longest prefix matching by HW ชื่อ TCAMs (content addressable)
+        2. generalized forwarding : any set of header field values (หลาย field)
 
-Switch fabric : input link to output link : switch rate : กี่ flow ทำพร้อมกัน , มีหลาย switch fabric ได้ 
-มี switch fabric 3 major types
-    1. memory : คล้าย computer, input -> memory -> output , memory bandwidth limit speed
-    2. bus : bus contention : bus bandwidth limit speed
-    3. interconn network : exploiting parallelism = แปลง datagram เป็น cell (fixed size) ส่งแล้วค่อย reassemble at exit ช่วยเพิ่ม performance
+    Switch fabric : input link to output link : switch rate : ส่งได้ไวแค่ไหน (bps, packet per sec) , มีหลาย switch fabric ได้ 
+    มี switch fabric 3 major types
+        1. memory : คล้าย computer, input ไปเก็บที่ memory, output มาดึงจาก memory, memory bandwidth limit speed
+        2. bus : มีโอกาสเกิด bus contention : bus bandwidth limit speed
+        3. interconn network : มีได้หลายเส้นทาง cross network
+            exploiting parallelism = แปลง datagram เป็น cell (fixed size) แยกกันส่งแล้วค่อย reassemble at exit ช่วยเพิ่ม performance
 
-ทั้งสองต่อจากนี้ทำให้เกิด delay/loss เพราะ buffer overflow
-input port queuing : เกิด HOL blocking ได้ , มาไว switch fabric slower than input port เกิด delay/loss เพราะ input buffer overflow
-output port queuing : switch fabric faster than transmission, ขนาด buffer = RTT*C / sqrt(N) , C = link capacity, N = number of flow
-    buffer เต็ม -> drop อันไหน (drop policy) 1. tail drop (drop อันมาหลังๆ) , 2. priority (priority base)
-    scheduling policy ส่งอันไหน 
-        1. FCFS : First come first serve, first in first out
-        2. Priority : header ใดๆ, same priority -> FCFS 
-        3. RR : แบ่ง class โดยใช้ headerใดๆ, แล้วสลับกันส่ง 
-        4. Weighted fair queuing : แต่ละ class ส่งไม่เท่ากัน not 111 but 123
+    ทั้งสองต่อจากนี้ทำให้เกิด delay/loss เมื่อ buffer overflow
+    input port queuing : เกิด HOL blocking ได้ , เมื่อ switch rate slower than input rate 
+    output port queuing : switch rate faster than transmission, ขนาด buffer = RTT*C / sqrt(N) , C = link capacity, N = number of flow
+        buffer เต็ม -> drop อันไหน (drop policy) 
+            1. tail drop (drop อันมาหลังๆ)  
+            2. priority (priority base)
+        scheduling policy ส่งอันไหนก่อน 
+            1. FCFS : First come first serve, first in first out
+            2. Priority : header ใดๆ, same priority -> FCFS 
+            3. RR : แบ่ง class โดยใช้ headerใดๆ, แล้วสลับกันส่ง 
+            4. Weighted fair queuing : แต่ละ class ส่งไม่เท่ากัน not 111 but 123
 
 Datagram Format IPv4
     header len : header bytes
@@ -44,34 +50,35 @@ Datagram Format IPv4
 
 IPv4 addr : 32-bit , dotted-decimal notation: xxx.xxx.xxx.xxx , xxx = 8-bit : for host or router interface
 
-Subnet : isolated network : กลุ่มอุปกรณ์ที่ไปถึงกันและกันโดยไม่ต้องผ่าน router, ขอได้จาก ISP, ISP ขอจาก RR, RR ขอจาก ICANN
-subnet mask /x : x higher bit is subnet part ใช้บอก maximum เครื่องได้ อย่าลืม -2
+Subnet : isolated network : กลุ่มอุปกรณ์ที่ไปถึงกันและกันโดยไม่ต้องผ่าน router, ขอได้จาก ISP, ISP ขอจาก RR, RR ได้จาก ICANN
+subnet mask /x : x higher bit is subnet part ใช้มาคำนวณ maximum เครื่องได้ 2^(32 - x) - 2
     IP addr : subnet part (network) + host part (device) 
-CIDR : classless : a.b.c.d/x
+CIDR : classless ไม่ยึดตาม class แบบ a.b.c.d/x
 
+https://chatgpt.com/share/681adec3-2c5c-8011-bd40-b4c1cbc8fa68
 How host get their ip addr -> DHCP
 DHCP (UDP) : automatic server to แจกจ่าย ip : plug and play  
-0 ล้วน = anonymous , 255 ล้วน = broadcast
-    client src always 0.0.0.0, ของ server เป็น ip ของ host
+    0 ล้วน = anonymous ยังไม่มี ip , 255 ล้วน = broadcast ใช้ในการบอกทุกคน
+    client src always 0.0.0.0, src ตอน server ตอบกลับก็เป็น ip ของ server
     DORA (discover, offer, request, ack) : ทั้ง 4 steps boardcast ล้วน dest = 255.255.255.255
-        D : host boardcast : DHCP discover msg [optional] : ถามว่ามี server อยู่มั้ย
-        O : server broadcast : DHCP offer msg [optional] : offer ip ให้
+        D : host boardcast : DHCP discover msg : หา server
+        O : server broadcast : DHCP offer msg : มี IP นี้ให้
         R : host request ip : DHCP request msg : ขอใช้ ip นี้
         A : server send ip : DHCP ack msg : ตอบรับว่ารับทราบ
     DO can be skip if client remember and wanna use previous addr : ก็ขอใช้ ip นี้ไปเลย
 ได้จริงๆ ตอน O, นอกจากนี้ยังได้ 
-    1. ip addr of first hop router  
-    2. name and ip of DNS server 
+    1. default gateway (router)
+    2. DNS server 
     3. subnet mask
 
-Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เพิ่มประสิทธิภาพในการแจ้งข้อมูล 
+Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เพิ่มประสิทธิภาพในการแจ้งข้อมูล/จัดการ
     ทำโดยให้ ISP รับข้อมูล แล้วค่อยจ่ายต่อให้ผู้ใช้ข้างล่าง -> เปลี่ยน ISP ก็แค่เพิ่มไปที่อีกค่าย
 
 ปัญหา IPv4 addr ไม่พอใช้แล้ว 
     -> IPv6 (real sol) -> cant เพราะ เราเปลี่ยน router ทั้งหมดไม่ได้ so IPv4 ยังถูกใช้ 
         128-bit ip addr
         no checksum
-        no option -> 40-bytes fixed header 
+        no option -> ทำให้ IPv6 เป็น 40-bytes fixed header 
         no fragment เพราะขนาดคงที่
         new network-layer treatment -> flow for video
     -> NAT all device in local share one IPv4 addr diff port แก้เฉพาะหน้า แต่ก็มีข้อดี
@@ -80,29 +87,28 @@ Hierarchical Addressing : แก้ปัญหา route table ใหญ่ เ�
         security ภายนอกเข้าภายในไม่ได้
         
 NAT implementation :
-1. source ip, port -> NAT ip, NAT port, ข้างนอกส่งมาก็จะใช้ NAT ip, NAT port เป็น dest ip, port
+1. source ip, port -ผ่าน NAT> NAT ip, NAT port, ข้างนอกส่งมาก็จะใช้ NAT ip, NAT port เป็น dest ip, port
 2. ต้องจดจำ source ip, port ~ NAT ip, NAT port pair ด้วย NAT translation table 
-ปัญหา NAT คือ ก้าวก่าย transport layer : ใช้ #port
+ปัญหา NAT คือ ใช้สิ่งที่อยู่นอกเหนือจาก layer ตัวมัน -> ใช้ #port ซึ่งอยู่ใน transport layer
 
 Tunneling : อยากใช้ IPv6 แต่ต้องผ่าน IPv4 router 
-    ครอบ IPv6 ด้วย IPv4 header (src & dest) -> packet in packet
-    src & dest ใน IPv4 header จะเป็น IPv6/v4 router ที่เป็นต้นและปลายทาง
+    ครอบ IPv6 ด้วย IPv4 header (src & dest) 
+    src & dest ใน IPv4 header จะเป็น ip ของ IPv6/v4 router ที่เป็นต้นและปลายทาง
 
 Generalized forwarding : หลาย field ช่วยกันกำหนด action ไม่ใช่แค่ dest ip 
     header ที่ใช้ได้มีตั้งแต่ Link,Network,Transport layer
-    action : forward/drop (firewall)/copy/modify (NAT) /log/send to controller
-match -> src = 1.2.*.*, dest = *.*.*.* action = drop ทำหน้าที่เป็น firewall
-match and action = เกิดรูปแบบการทำงานที่หลากหลาย can be router, switch, firewall and NAT
+    action : forward/drop (firewall)/copy/modify (NAT)/log/send to controller
+    เช่น match -> src = 1.2.*.*, dest = *.*.*.* action = drop ทำหน้าที่เป็น firewall เพราะ src นี้อันตราย
+match and action = เกิดรูปแบบการทำงานที่หลากหลาย ทำให้ทำหน้าที่ได้ทั้ง router, switch, firewall and NAT
 router -> match dest IP addr, switch -> match dest MAC addr
-สามารถใช้มา program network-wide behavior
+สามารถใช้มา program network-wide behavior -> กำหนดเส้นทางเฉพาะ , กระจาย traffic 
 
 https://chatgpt.com/share/6818b600-6040-8011-94af-f2ad90d8d79a
 Middlebox : ส่วนเสริมใดๆ ที่ไม่ใช่การส่งข้อมูลธรรมดา เช่น NAT, Firewall, Loadbalancer, caches
-    Proprietary HW -> Whitebox + VM -> SDN + NFV
+    Evolution : Proprietary HW -> Whitebox + VM -> SDN + NFV
 SDN : Centralized control and configuration management
 NFV : Network Function Virtualization : ฟังก์ชั่นของ middlebox ถูกทำเป็น SW หมด
 principle of internet : 
     1. simple connectivity 
     2. ip protocol 
     3. intelligence at network edge
-
